@@ -1,0 +1,4 @@
+# pack-refs with: peeled 
+2567013c4d80d78ffcdb382c9c9813b4ea53c1cc refs/remotes/origin/master
+d940a443c41786054d98690c940e1c5971febb31 refs/remotes/origin/mergeCDT
+b78b0bd20b5d1eb33ff49cf37e0c540dc67a36aa refs/remotes/origin/newColorForFooter

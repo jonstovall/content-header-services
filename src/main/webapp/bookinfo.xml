@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<products xmlns:xlink="http://www.w3.org/1999/xlink">
+   <latestpdf>dontdisplay</latestpdf>
+   <pdfoutname>dontdisplay</pdfoutname>
+   <docname>API Docs Header/Footer RESTful Service</docname>
+   <productname>Doctools Services</productname>
+   <webappname>rax-headerservice</webappname>
+   <pominfo>
+      <groupid>headerservice.feedback</groupid>
+      <artifactid>headerservice.feedback</artifactid>
+      <jenkinsjobname>com.rackspace.header.service---rax-headerservice</jenkinsjobname>
+      <version>1.0.0-SNAPSHOT</version>
+      <pomname>Doctools Services</pomname>
+   </pominfo>
+   <product>
+      <types>
+         <type>
+            <displayname>API Docs Header/Footer RESTful Service</displayname>
+         </type>
+      </types>
+   </product> 
+   <!--  
+   <product>
+      <id>docs-services</id>
+      <types>
+         <type>
+            <id>222</id>
+            <displayname>API Docs Feedback Views</displayname>
+            <url>/cbd/api/v1.0/cbd-devguide/content/overview.html</url>
+            <sequence>20</sequence>
+         </type>
+      </types>
+   </product>
+   -->
+   <emails>
+      <email>
+         <name>API Docs Header/Footer RESTful Service</name>
+         <to>clouddoctoolsteam@lists.rackspace.com</to>
+         <from>clouddoctoolsteam@lists.rackspace.com</from>
+      </email>
+   </emails>
+</products>

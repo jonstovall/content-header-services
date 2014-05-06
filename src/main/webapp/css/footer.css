@@ -1,0 +1,239 @@
+
+a:hover {
+	text-decoration: underline; 
+	color:#AAA;
+}
+
+#rackspace-footer{
+	position: relative;
+	top: 0px;width: 100%;
+	background: #1A1A1A;
+	z-index: 40;
+	margin: 0px;
+	padding: 0px;
+	border: 0px;
+	font-family: arial,verdana,sans-serif;
+	font-size: 12px;
+	color: #505050;
+	text-align: center;
+	line-height: 16px;
+}
+
+#racskspace-rug-wrap{
+	background-color: #c40022;
+	color: #fff;
+	padding: 25px 0 10px;
+	line-height: 1.3em;
+	font-family: "RobotoLight","HelveticaNeue","Helvetica Neue",Helvetica,Arial,sans-serif;
+	font-size: 15px;
+	margin: 0px;
+	border:0px;
+}
+
+.rackspace-container_12{
+    position: relative;
+    top: 0px;
+    left: 0px;
+    width: 960px;
+    margin: 0px auto;
+    text-align: left;
+    padding: 0px;
+    border: 0px;
+    color: #fff;
+    line-height: 1.3em;
+    font-family: "RobotoLight","HelveticaNeue","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 15px;
+    display:block;	
+}
+
+.rackspace-grid_4{
+	width: 304px;
+	position: relative;
+	float: left;
+	margin: 0px;
+	padding: 0px;
+	border: 0px;
+	text-align: left;
+	color: #fff;
+	line-height: 1.3em;
+	font-family: "RobotoLight","HelveticaNeue","Helvetica Neue",Helvetica,Arial,sans-serif;
+	font-size: 15px;
+}
+
+#img24x7{
+	margin: 0px;
+	padding: 0px;
+	border: 0px;
+	text-align: left;
+	color: #fff;
+	line-height: 1.3em;
+	font-family: "RobotoLight","HelveticaNeue","Helvetica Neue",Helvetica,Arial,sans-serif;
+	font-size: 15px;
+}
+
+#grid_3push_2{
+	left: 48px;
+	width: 220px;
+	position: relative;
+	float: left;
+}
+
+#phone{
+	background: url("http://images.cdn.rackspace.com/footer/rug/callus-icon.png") no-repeat;
+	text-transform: uppercase;
+	font-size: 13px;
+	margin-top: -10px;
+	padding: 10px 0 10px 40px;
+	cursor: pointer;
+}
+
+#phonenumbers{
+	list-style: none;
+	display: block;
+	-webkit-margin-before: 1em;
+	-webkit-margin-after: 1em;
+	-webkit-margin-start: 0px;
+	-webkit-margin-end: 0px;
+	-webkit-padding-start: 40px;
+}
+
+.aphonenumber{
+	display: list-item;
+	text-align: -webkit-match-parent;
+	list-style: none;
+	text-align: left;
+	white-space:nowrap;
+}
+
+.grid_3push_4{
+	left: 96px;
+	width: 220px;
+	position: relative;
+	float: left;
+	display:none;
+}
+
+#chat a{
+	background: url("http://images.cdn.rackspace.com/footer/rug/chatwithus-icon.png")no-repeat;
+	display: block;
+	padding: 10px 0 10px 53px;
+	height: 21px;
+	color: #fff;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.grid_2push_4{
+	left: 96px;
+	width: 140px;
+	position: relative;
+	float: left;
+}
+
+#email{
+	 text-align: left;
+}
+
+#emaillink{
+	background: url("http://images.cdn.rackspace.com/footer/rug/emailus-icon.png") no-repeat;
+	display: block;
+	padding: 10px 0 10px 53px;
+	height: 21px;
+	color: #fff;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.clear0{
+    background: none;
+    border: 0;
+    clear: both;
+    display: block;
+    float: none;
+    font-size: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    visibility: hidden;
+    width: 0;
+    height: 0;
+    text-align: left;
+}
+
+#rackspace-fatfooter-wrap{
+    position: relative;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    margin: 30px auto;
+    font-family: arial,verdana,sans-serif;
+    font-size: 12px;
+    color: #505050;
+    text-align: center;l
+    ine-height: 16px;	
+}
+
+.li0{
+    font-size: 12px;
+    text-transform: capitalize;
+    white-space: nowrap;
+    margin-bottom: 7px;
+    display: list-item;
+    text-align: -webkit-match-parent;
+    list-style-type: none;
+    line-height: 14px;
+    color: #CCC;
+}
+
+.anchor0{
+	color: #AAA;
+	text-decoration: none;
+	cursor: auto;
+	font-size: 12px;
+	text-transform: capitalize;
+	white-space: nowrap;
+	text-align: -webkit-match-parent;
+	list-style-type: none;
+	line-height: 14px;
+}
+
+.rackspace-grid_2{
+	position: relative;
+	color: #CCC;
+	font-size: 13px;
+	text-transform: uppercase;
+	margin-bottom: 15px;
+	width: 140px;
+	float: left;
+	text-align: left;
+	line-height: 16px;
+}
+
+.rackspace-grid_2b{
+	position: relative;
+	color: #CCC;
+	font-size: 13px;
+	text-transform: uppercase;
+	margin-bottom: 15px;
+	text-align: left;
+	line-height: 16px;
+}
+
+.rackspace-block1{
+	list-style-type: none;
+	margin: 0px;
+	padding: 0px;
+	border: 0px;
+	line-height: 14px;
+	-webkit-margin-before: 1em;
+	display:block;
+	-webkit-margin-after: 1em;
+	-webkit-margin-start: 0px;
+	-webkit-margin-end: 0px;
+	-webkit-padding-start: 40px;
+	color: #CCC;
+	font-size: 13px;
+	text-transform: uppercase;
+}
+
