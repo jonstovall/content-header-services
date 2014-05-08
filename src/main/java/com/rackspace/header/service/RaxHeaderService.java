@@ -106,7 +106,27 @@ public class RaxHeaderService {
 				String replacedFooterId=replacedHeaderId.replaceAll("#~!@#footerdivid#@!~", ("#"+footerdivid));
 				String replacedFilter=replacedFooterId.replaceAll("~!@#filter#@!~", filter);    
 				String replacedServer=replacedFilter.replaceAll("~!@#servername#@!~", servername); 
-				String replacedProtocol=replacedServer.replaceAll("~!@#http://#@!~", protocol); 
+				
+				//Now get the Header.html file
+				innyStream=RaxHeaderService.class.getResourceAsStream("style.html");
+				String styleContent=getFileContents(innyStream);
+				String replaceStyleContent=replacedServer.replaceAll("~!@#haasstyle#@!~", this.compressHtml(styleContent));
+				
+				//Now get the Header.html file
+				innyStream=RaxHeaderService.class.getResourceAsStream("Header.html");
+				String insertHeaderContent=getFileContents(innyStream);
+				String replaceHeaderContent=replaceStyleContent.replaceAll("~!@#headervalue#@!~", this.compressHtml(insertHeaderContent));
+				
+				//Now get the Footer.html file
+				innyStream=RaxHeaderService.class.getResourceAsStream("Footer.html");
+				String insertFooterContent=getFileContents(innyStream);	
+				SimpleDateFormat simpleDateFormatter=new SimpleDateFormat("yyyy");
+				Date currentYear=new Date(System.currentTimeMillis());
+				String year=simpleDateFormatter.format(currentYear);
+				insertFooterContent=insertFooterContent.replace("~~~YYYY~~~", year);
+				String replaceFooterContent=replaceHeaderContent.replaceAll("~!@#footervalue#@!~", this.compressHtml(insertFooterContent));	
+								
+				String replacedProtocol=replaceFooterContent.replaceAll("~!@#http://#@!~", protocol); 
 				
 				if(includejq.equalsIgnoreCase("true")){
 					innyStream=RaxHeaderService.class.getResourceAsStream("latestJQuery.js");
@@ -116,17 +136,17 @@ public class RaxHeaderService {
 					int startInsertIndex=replacedProtocol.indexOf("(function(){");
 					if(-1!=startInsertIndex){
 						retStrBuff.append(replacedProtocol.substring(0,(startInsertIndex+"(function(){".length())));
-						retStrBuff.append("\r\n");
+						retStrBuff.append("\n");
 						retStrBuff.append(insertJQStr);						
-						retStrBuff.append("\r\n");
+						retStrBuff.append("\n");
 						if(includejqui.equalsIgnoreCase("true")){
 							innyStream=RaxHeaderService.class.getResourceAsStream("latestJQueryUI.js");
 							String jqueryUIInsert=getFileContents(innyStream);
 							retStrBuff.append(jqueryUIInsert);
-							retStrBuff.append("\r\n");	 
+							retStrBuff.append("\n");	 
 						}
 						retStrBuff.append(replacedProtocol.substring((startInsertIndex+("(function(){".length()))));
-						retStrBuff.append("\r\n");
+						retStrBuff.append("\n");
 					}
 
 					replacedProtocol=retStrBuff.toString();					
@@ -367,6 +387,7 @@ public class RaxHeaderService {
 		return retVal;
 	}
 	
+	
 	private String getFileContents(InputStream inny)throws IOException{
 	    String retVal="";
 	    if(null!=inny){
@@ -376,7 +397,8 @@ public class RaxHeaderService {
 	    	while(-1!=(readInt=inny.read())){
 	    		readChar=(char)readInt;
 	    		if(readChar=='"'){
-	    			tempBuff.append('\"');
+	    			//must use tempBuff.append("\""); instead of tempBuff.append('"');
+	    			tempBuff.append("\"");
 	    		}
 	    		else{
 	    			tempBuff.append(readChar);
