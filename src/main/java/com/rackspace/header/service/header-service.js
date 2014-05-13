@@ -49,6 +49,7 @@
 
 	/************Search Stuff**********/
 
+
 	var SearchModel = {
 			initialize: function() {
 				this.query = "";
@@ -160,191 +161,192 @@
 				return this.page == 1;
 			}
 	};
-			var SearchController = {
-			  initialize: function(searchForm, searchField) {
-			    this.searchForm = searchForm;
-			    this.searchField = searchField;
-			    this.attachToSearchField();
-			    SearchView.setupSearchFiltersFunction(this.attachSearchFiltersFunction());
-			  },
-			  attachToSearchField: function() {
-			    this.searchForm.on('submit', this.searchFunction());
-			    if (this.searchField.autocomplete) {
-			      this.searchField.autocomplete({
-			        source: this.completeSearch,
-			        position: { my: "left top", at: "left bottom" },
-			      });
-			    } else {
-			      console.warn('jQuery UI autocomplete not available');
-			    }
-			  },
-			  attachSearchFiltersFunction: function() {
-			    var SearchController = this;
-			    return function() {
-			      jQuery('.filter_all').on('click', SearchController.filterFunction('all'));
-			      jQuery('.filter_api_docs').on('click', SearchController.filterFunction('api_docs'));
-			      jQuery('.filter_discussions').on('click', SearchController.filterFunction('discussions'));
-			      jQuery('.filter_product_documentation').on('click', SearchController.filterFunction('product_documentation'));
-			    };
-			  },
-			  searchFunction: function() {
-			    return function(event) {
-			      event.preventDefault();
-			      var query = SearchController.getQueryString();
-			      if (query) {
-			        SearchController.blur(); // otherwise autocomplete may still be active
-			        SearchModel.search(query);
-			      }
-			    };
-			  },
-			  getQueryString: function() {
-			    var user_input = this.searchField.val();
-			    var stripped = user_input.replace(/<[^>]*>?/g, "");
-			    return stripped;
-			  },
-			  blur: function() {
-			    this.searchField.blur();
-			  },
-			  filterFunction: function(filterValue) {
-			    var SearchController = this;
-			    return function(event) {
-			      event.preventDefault();
-			      SearchModel.setFilter(filterValue);
-			    };
-			  },
-			  completeSearch: function(request,response) {
+	var SearchController = {
+			initialize: function(searchForm, searchField) {
+				this.searchForm = searchForm;
+				this.searchField = searchField;
+				this.attachToSearchField();
+				SearchView.setupSearchFiltersFunction(this.attachSearchFiltersFunction());
+			},
+			attachToSearchField: function() {
+				this.searchForm.on('submit', this.searchFunction());
+				if (this.searchField.autocomplete) {
+					this.searchField.autocomplete({
+						source: this.completeSearch,
+						position: { my: "left top", at: "left bottom" },
+					});
+				} else {
+					console.warn('jQuery UI autocomplete not available');
+				}
+			},
+			attachSearchFiltersFunction: function() {
+				var SearchController = this;
+				return function() {
+					jQuery('.filter_all').on('click', SearchController.filterFunction('all'));
+					jQuery('.filter_api_docs').on('click', SearchController.filterFunction('api_docs'));
+					jQuery('.filter_discussions').on('click', SearchController.filterFunction('discussions'));
+					jQuery('.filter_product_documentation').on('click', SearchController.filterFunction('product_documentation'));
+				};
+			},
+			searchFunction: function() {
+				return function(event) {
+					event.preventDefault();
+					var query = SearchController.getQueryString();
+					if (query) {
+						SearchController.blur(); // otherwise autocomplete may still be active
+						SearchModel.search(query);
+					}
+				};
+			},
+			getQueryString: function() {
+				var user_input = this.searchField.val();
+				var stripped = user_input.replace(/<[^>]*>?/g, "");
+				return stripped;
+			},
+			blur: function() {
+				this.searchField.blur();
+			},
+			filterFunction: function(filterValue) {
+				var SearchController = this;
+				return function(event) {
+					event.preventDefault();
+					SearchModel.setFilter(filterValue);
+				};
+			},
+			completeSearch: function(request,response) {
 
-			    completeSearchCallback = function (jsonResponse) {
-			      // second element of json response is an array of one-element arrays that we flatten here
-			      response(jQuery(jsonResponse[1]).map(function(){return this[0];}));
-			    };
-			    // Now call for autocomplete terms
-			    jQuery.ajax({
-			      dataType: "json",
-			      url: (window.location.protocol == "https:"?"https":"http") + '://clients1.google.com/complete/search?callback=?',
-			      data: {
-			        q: request.term,
-			        client: 'partner',
-			        partnerid: '006605420746493289825:wnrdhyxrou4',
-			        ds: 'cse'
-			      },
-			      success: completeSearchCallback
-			    });
-			  }
-			};
-			var SearchView = {
-			  initialize: function(div, drawSearchCallback) {
-			    this.div = div;
-			    SearchModel.addObserver(this);
-			    this.isFirstTimeRendering = true;
-			    this.filterFunctionCallback = null;
-			    this.drawSearchCallback = drawSearchCallback;
-			  },
-			  observe: function(event) {
-			    switch (event) {
-			    case "filter":
-			      this.highlightCurrentFilter();
-			      this.emptyResults();
-			    case "page":
-			      jQuery('.support-results-loading').show();
-			      jQuery('.support-results-more').hide();
-			      break;
-			    case "search":
-			      this.draw();
-			      break;
-			    case "searchReturned":
-			      this.drawResults();
-			      break;
-			    default:
-			      console.warn("oops! something went wrong\n  event: " + event);
-			    }
-			  },
-			  emptyResults: function() {
-			    jQuery('#search-results').empty();
-			  },
-			  setupSearchFiltersFunction: function(filterFunctionCallback) {
-			    this.filterFunctionCallback = filterFunctionCallback;
-			  },
-			  draw: function() {
-			    if (this.isFirstTimeRendering) {
-			      var skeletonHtml = [
-			      "<div class='support-results-container'>",
-			      "<h4>Search Results</h4>",
-			      "<ul class=\"support-content-filter clearfix\">",
-			      "<li class=\"filter_all\"><a href=\"#\">All Results</a></li>",
-			      "<li class=\"filter_product_documentation\"><a href=\"#\">Knowledge Center</a></li>",
-			      "<li class=\"filter_api_docs\"><a href=\"#\">API Docs</a></li>",
-			      "<li class=\"filter_discussions\"><a href=\"#\">Community</a></li>",
-			      "</ul>",
-			      "<div id=\"search-results\"></div>",
-			      "<i class='spinner support-results-loading'></i>",
-			      "<p class='support-results-more' style='display:none;'><a href='#' id='showMore'> <i class='fa fa-refresh'></i> Load more results</a></p>",
-			      "</div>",
-			      ].join("\n");
-			      this.div.html(skeletonHtml);
-			      this.filterFunctionCallback();
-			      this.highlightCurrentFilter();
-			      jQuery('#showMore').click(function(e) {
-			        e.preventDefault();
-			        SearchModel.nextPage();
-			      });
-			      this.isFirstTimeRendering = false;
-			    } else {
-			      this.emptyResults();
-			    }
-			    if(typeof this.drawSearchCallback != "undefined") this.drawSearchCallback();
-			  },
-			  drawResults: function() {
-			    var div = jQuery('#search-results');
-			    var results = SearchModel.getResults();
-			    var createLink = this.createLink;
-			    if(results.length == 0) {
-			      if (SearchModel.isFirstPage()) {
-			        // there could be no results because google says so or because an error occurred with the search...
-			        // either way, we tell the user there are no search results
-			        div.append('<p class="support-results-none">No search results for &quot;<strong>' + SearchModel.getQueryString() + '</strong>&quot;</p>');
-			      } // else it's just the end of the search results, do nothing
-			    } else {
-			      jQuery.each(results, function(index,item){
-			        createLink('<h5>',item.titleNoFormatting,item.url,item.title).appendTo(div);
-			        jQuery('<p>'+ item.content +'</p>').appendTo(div);
-			        createLink('<p class="meta">',item.url,item.url,item.url).appendTo(div);
-			      });
-			    }
-			    jQuery('.support-results-loading').hide();
-			    jQuery('.support-results-more')[SearchModel.hasMorePages()?'show':'hide']();
-			  },
-			  highlightCurrentFilter: function() {
-			    var filterValue = SearchModel.getFilter();
-			    jQuery('ul.support-content-filter li.active').removeClass("active");
-			    jQuery('ul.support-content-filter li.filter_' + filterValue).addClass("active");
-			  },
-			  createLink: function(encloseIn,title,link,contents) {
-			    var result = jQuery(encloseIn);
-			    var link = jQuery('<a>',{
-			      'title': title,
-			      'href': link,
-			      'target': '_blank'
-			    });
-			    link.append(contents);
-			    link.appendTo(result);
-			    return result;
-			  },
-			};
-			function setupSearch(searchFormId,searchFieldId,searchResultsDivId,defaultFilter,drawSearchCallback) {
-			  var searchForm = jQuery('#'+searchFormId);
-			  var searchField = jQuery("#" + searchFieldId);
-			  var searchResultsDiv = jQuery("#" + searchResultsDivId);
-			  if(typeof defaultFilter === "undefined") defaultFilter = "all";
-			  if (searchForm.length != 1 || searchField.length != 1 || searchResultsDiv.length != 1) {
-			    console.warn("setupSearch failed");
-			  } else {
-			    SearchModel.initialize();
-			    SearchModel.setFilter(defaultFilter);
-			    SearchView.initialize(searchResultsDiv, drawSearchCallback);
-			    SearchController.initialize(searchForm, searchField);
-			  }
+				completeSearchCallback = function (jsonResponse) {
+					// second element of json response is an array of one-element arrays that we flatten here
+					response(jQuery(jsonResponse[1]).map(function(){return this[0];}));
+				};
+				// Now call for autocomplete terms
+				jQuery.ajax({
+					dataType: "json",
+					url: (window.location.protocol == "https:"?"https":"http") + '://clients1.google.com/complete/search?callback=?',
+					data: {
+						q: request.term,
+						client: 'partner',
+						partnerid: '006605420746493289825:wnrdhyxrou4',
+						ds: 'cse'
+					},
+					success: completeSearchCallback
+				});
 			}
+	};
+	var SearchView = {
+			initialize: function(div, drawSearchCallback) {
+				this.div = div;
+				SearchModel.addObserver(this);
+				this.isFirstTimeRendering = true;
+				this.filterFunctionCallback = null;
+				this.drawSearchCallback = drawSearchCallback;
+			},
+			observe: function(event) {
+				switch (event) {
+				case "filter":
+					this.highlightCurrentFilter();
+					this.emptyResults();
+				case "page":
+					jQuery('.support-results-loading').show();
+					jQuery('.support-results-more').hide();
+					break;
+				case "search":
+					this.draw();
+					break;
+				case "searchReturned":
+					this.drawResults();
+					break;
+				default:
+					console.warn("oops! something went wrong\n  event: " + event);
+				}
+			},
+			emptyResults: function() {
+				jQuery('#search-results').empty();
+			},
+			setupSearchFiltersFunction: function(filterFunctionCallback) {
+				this.filterFunctionCallback = filterFunctionCallback;
+			},
+			draw: function() {
+				if (this.isFirstTimeRendering) {
+					var skeletonHtml = [
+					                    "<div class='support-results-container'>",
+					                    "<h4>Search Results</h4>",
+					                    "<ul class=\"support-content-filter clearfix\">",
+					                    "<li class=\"filter_all\"><a href=\"#\">All Results</a></li>",
+					                    "<li class=\"filter_product_documentation\"><a href=\"#\">Knowledge Center</a></li>",
+					                    "<li class=\"filter_api_docs\"><a href=\"#\">API Docs</a></li>",
+					                    "<li class=\"filter_discussions\"><a href=\"#\">Community</a></li>",
+					                    "</ul>",
+					                    "<div id=\"search-results\"></div>",
+					                    "<i class='spinner support-results-loading'></i>",
+					                    "<p class='support-results-more' style='display:none;'><a href='#' id='showMore'> <i class='fa fa-refresh'></i> Load more results</a></p>",
+					                    "</div>",
+					                    ].join("\n");
+					this.div.html(skeletonHtml);
+					this.filterFunctionCallback();
+					this.highlightCurrentFilter();
+					jQuery('#showMore').click(function(e) {
+						e.preventDefault();
+						SearchModel.nextPage();
+					});
+					this.isFirstTimeRendering = false;
+				} else {
+					this.emptyResults();
+				}
+				if(typeof this.drawSearchCallback != "undefined") this.drawSearchCallback();
+			},
+			drawResults: function() {
+				var div = jQuery('#search-results');
+				var results = SearchModel.getResults();
+				var createLink = this.createLink;
+				if(results.length == 0) {
+					if (SearchModel.isFirstPage()) {
+						// there could be no results because google says so or because an error occurred with the search...
+						// either way, we tell the user there are no search results
+						div.append('<p class="support-results-none">No search results for &quot;<strong>' + SearchModel.getQueryString() + '</strong>&quot;</p>');
+					} // else it's just the end of the search results, do nothing
+				} else {
+					jQuery.each(results, function(index,item){
+						createLink('<h5>',item.titleNoFormatting,item.unescapedUrl,item.title).appendTo(div);
+						jQuery('<p>'+ item.content +'</p>').appendTo(div);
+						createLink('<p class="meta">',item.titleNoFormatting,item.unescapedUrl,item.unescapedUrl).appendTo(div);
+					});
+				}
+				jQuery('.support-results-loading').hide();
+				jQuery('.support-results-more')[SearchModel.hasMorePages()?'show':'hide']();
+			},
+			highlightCurrentFilter: function() {
+				var filterValue = SearchModel.getFilter();
+				jQuery('ul.support-content-filter li.active').removeClass("active");
+				jQuery('ul.support-content-filter li.filter_' + filterValue).addClass("active");
+			},
+			createLink: function(encloseIn,title,link,contents) {
+				var result = jQuery(encloseIn);
+				var link = jQuery('<a>',{
+					'title': title,
+					'href': link,
+					'target': '_blank'
+				});
+				link.append(contents);
+				link.appendTo(result);
+				return result;
+			},
+	};
+	function setupSearch(searchFormId,searchFieldId,searchResultsDivId,defaultFilter,drawSearchCallback) {
+		var searchForm = jQuery('#'+searchFormId);
+		var searchField = jQuery("#" + searchFieldId);
+		var searchResultsDiv = jQuery("#" + searchResultsDivId);
+		if(typeof defaultFilter === "undefined") defaultFilter = "all";
+		if (searchForm.length != 1 || searchField.length != 1 || searchResultsDiv.length != 1) {
+			console.warn("setupSearch failed");
+		} else {
+			SearchModel.initialize();
+			SearchModel.setFilter(defaultFilter);
+			SearchView.initialize(searchResultsDiv, drawSearchCallback);
+			SearchController.initialize(searchForm, searchField);
+		}
+	}
+
 
 
 

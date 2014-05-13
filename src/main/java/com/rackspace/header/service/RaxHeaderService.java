@@ -136,17 +136,17 @@ public class RaxHeaderService {
 					int startInsertIndex=replacedProtocol.indexOf("(function(){");
 					if(-1!=startInsertIndex){
 						retStrBuff.append(replacedProtocol.substring(0,(startInsertIndex+"(function(){".length())));
-						retStrBuff.append("\n");
+						retStrBuff.append(" ");
 						retStrBuff.append(insertJQStr);						
-						retStrBuff.append("\n");
+						retStrBuff.append(" ");
 						if(includejqui.equalsIgnoreCase("true")){
 							innyStream=RaxHeaderService.class.getResourceAsStream("latestJQueryUI.js");
 							String jqueryUIInsert=getFileContents(innyStream);
 							retStrBuff.append(jqueryUIInsert);
-							retStrBuff.append("\n");	 
+							retStrBuff.append(" ");	 
 						}
 						retStrBuff.append(replacedProtocol.substring((startInsertIndex+("(function(){".length()))));
-						retStrBuff.append("\n");
+						retStrBuff.append("\\\n");
 					}
 
 					replacedProtocol=retStrBuff.toString();					
@@ -157,6 +157,7 @@ public class RaxHeaderService {
 					StringReader strReader=new StringReader(replacedProtocol);
 					StringWriter strWriter=new StringWriter();
 
+					//Only compress the javascript at this point, do not call this.compressHtml(String)
 					JavaScriptCompressor comp=new JavaScriptCompressor(strReader, new SystemOutErrorReporter());
 					comp.compress(strWriter, -1, true, false, false, false);
 
@@ -308,7 +309,7 @@ public class RaxHeaderService {
 						}						
 					}
 					retVal.append(readLine);
-					retVal.append("\n");
+					retVal.append(" ");
 					++lineNumber;
 				}			
 				buffReader.close();
