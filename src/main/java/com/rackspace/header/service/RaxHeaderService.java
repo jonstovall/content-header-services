@@ -146,7 +146,7 @@ public class RaxHeaderService {
 							retStrBuff.append(" ");	 
 						}
 						retStrBuff.append(replacedProtocol.substring((startInsertIndex+("(function(){".length()))));
-						retStrBuff.append("\\\n");
+						retStrBuff.append("\n");
 					}
 
 					replacedProtocol=retStrBuff.toString();					

@@ -56,7 +56,7 @@
 				this.filter = 'all'; // filter can be all, api_docs, discussions or product_documentation
 				this.page = 1;
 				this.resultsPerPage = 5;
-				this.jsonpResult = null;
+				this.results = null;
 				this.observers = [];
 				this.isLoading = false;
 			},
@@ -99,26 +99,24 @@
 					return;
 				}
 				this.isLoading = true;
-				this.jsonpResult = null;
-
-				processJsonp = function (jsonResponse) {
-					SearchModel.jsonpResult = jsonResponse;
-				};
-
+				this.results = null;
 				jQuery.ajax({
-					dataType:'jsonp',
-					url:'https://www.googleapis.com/customsearch/v1element?callback=?',
+					type: 'GET',
+					url: 'https://www.googleapis.com/customsearch/v1',
 					data: {
-						key: 'AIzaSyCVAXiUzRYsML1Pv6RwSG1gunmMikTzQqY',
+						// https://developers.google.com/custom-search/json-api/v1/reference/cse/list
+						key: 'AIzaSyCMGfdDaSfjqv5zYoS0mTJnOT3e9MURWkU',
 						cx: '006605420746493289825:wnrdhyxrou4',
 						q: this.getLongQueryString(),
 						num: this.resultsPerPage,
-						start: (this.page - 1) * this.resultsPerPage + 1,
+						start: (this.page-1) * this.resultsPerPage + 1,
 					},
 					context: this,
-					success: processJsonp,
 					error: function(xhr, status, error) {
-						console.warn('SearchModel.processSearch ' + status + ': ' + error);
+						// do nothing -- this.results is null indicates there was an error
+					},
+					success: function(result, status, xhr) {
+						this.results = result;
 					},
 					complete: function(xhr, status) {
 						this.isLoading = false;
@@ -135,20 +133,20 @@
 				return result;
 			},
 			getResults: function() {
-				if (this.jsonpResult && this.jsonpResult.results)
-					return this.jsonpResult.results;
-				return new Array();
+				var result;
+				if (this.results && this.results.items) {
+					result = this.results.items;
+				} else {
+					result = new Array();
+				}
+				return result;
 			},
 			getNumResults: function() {
-				try {
-					return parseInt(this.jsonpResult.cursor.estimatedResultCount);
-				} catch(err) {
-					return 0;
-				}
+				return this.results.searchInformation.totalResults;
 			},
 			getMaxNumPages: function() {
 				try {
-					var numPages = Math.ceil(this.getNumResults() / this.resultsPerPage);
+					var numPages = Math.ceil(this.results.searchInformation.totalResults / this.resultsPerPage);
 					return Math.min(20,numPages);
 				} catch (err) {
 					return 0;
@@ -157,9 +155,6 @@
 			hasMorePages: function() {
 				return this.page < this.getMaxNumPages();
 			},
-			isFirstPage: function() {
-				return this.page == 1;
-			}
 	};
 	var SearchController = {
 			initialize: function(searchForm, searchField) {
@@ -300,16 +295,14 @@
 				var results = SearchModel.getResults();
 				var createLink = this.createLink;
 				if(results.length == 0) {
-					if (SearchModel.isFirstPage()) {
-						// there could be no results because google says so or because an error occurred with the search...
-						// either way, we tell the user there are no search results
-						div.append('<p class="support-results-none">No search results for &quot;<strong>' + SearchModel.getQueryString() + '</strong>&quot;</p>');
-					} // else it's just the end of the search results, do nothing
+					// there could be no results because google says so or because an error occurred with the search...
+					// either way, we tell the user there are no search results
+					div.append('<p class="support-results-none">No search results for &quot;<strong>' + SearchModel.getQueryString() + '</strong>&quot;</p>');
 				} else {
-					jQuery.each(results, function(index,item){
-						createLink('<h5>',item.titleNoFormatting,item.unescapedUrl,item.title).appendTo(div);
-						jQuery('<p>'+ item.content +'</p>').appendTo(div);
-						createLink('<p class="meta">',item.titleNoFormatting,item.unescapedUrl,item.unescapedUrl).appendTo(div);
+					jQuery.each(results, function(index,item){        
+						createLink('<h5>',item.title,item.link,item.htmlTitle).appendTo(div);
+						jQuery('<p>'+ item.snippet +'</p>').appendTo(div);
+						createLink('<p class="meta">',item.htmlFormattedUrl,item.link,item.htmlFormattedUrl).appendTo(div);
 					});
 				}
 				jQuery('.support-results-loading').hide();
@@ -346,6 +339,7 @@
 			SearchController.initialize(searchForm, searchField);
 		}
 	}
+
 
 
 
