@@ -1,6 +1,6 @@
 
 (function(){
-	$(document).ready( function() { 
+	jQuery(document).ready( function() { 
 		function setupSearchAfterHeaderLoads() {
 			setupSearch('rax-support-search','rax-support-search-input','~!@#contentdivid#@!~','~!@#filter#@!~');
 		}	
@@ -12,29 +12,29 @@
 	
 	function insertStyle(){
 		var hassCssStyle="~!@#haasstyle#@!~";
-		$("<style type='text/css'>"+hassCssStyle+"</style>").appendTo("head");
+		jQuery("<style type='text/css'>"+hassCssStyle+"</style>").appendTo("head");
 	}
 
 	function getHeader(team, callback, server){	 
 		var theHeader="~!@#headervalue#@!~";
-		$("#~!@#headerdivid#@!~").html(theHeader);
+		jQuery("#~!@#headerdivid#@!~").html(theHeader);
 		var theTeam=team;
 		if(theTeam!=undefined){
-			$('.raxhs-tab').removeClass('active');
+			jQuery('.raxhs-tab').removeClass('active');
 			if(theTeam==='knowledge'){
-				$('#raxhs-knowledge').addClass('active');
+				jQuery('#raxhs-knowledge').addClass('active');
 
 			}
 			else if(theTeam==='api'){
 
-				$('#raxhs-api').addClass('active');        		
+				jQuery('#raxhs-api').addClass('active');        		
 			}
 			else if(theTeam==='community'){
 
-				$('#raxhs-community').addClass('active');             		
+				jQuery('#raxhs-community').addClass('active');             		
 			}
 			else if(theTeam==='support'){
-				$('#raxhs-support').addClass('active');          		
+				jQuery('#raxhs-support').addClass('active');          		
 			}
 		}
 		callback();
@@ -43,7 +43,7 @@
 
 	function getFooter(team,server){
 		var theFooter="~!@#footervalue#@!~";
-		$("#~!@#footerdivid#@!~").html(theFooter);   
+		jQuery("#~!@#footerdivid#@!~").html(theFooter);   
 	}
 
 
