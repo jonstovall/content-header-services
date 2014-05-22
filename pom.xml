@@ -73,14 +73,41 @@
 	<build>
 		<finalName>rax-headerservice</finalName>
 		<plugins>
-	<plugin>
-		<artifactId>maven-compiler-plugin</artifactId>
-		<version>2.3.2</version>
-		<configuration>
-			<source>1.6</source>
-			<target>1.6</target>
-		</configuration>
-	</plugin>
+	        <plugin>
+		      <artifactId>maven-compiler-plugin</artifactId>
+		      <version>2.3.2</version>
+		      <configuration>
+			    <source>1.6</source>
+			    <target>1.6</target>
+		      </configuration>
+	        </plugin>
+	        
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>ant</id>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <target name="start">
+                                <tstamp>
+                                    <format property="time" pattern="yyyy-MM-dd HH:mm:ss" />
+                                </tstamp>
+                                <echo>Adding timestamp to buildinfor.properties: ${time} </echo>
+                                <propertyfile file="src/main/webapp/WEB-INF/buildinfo.properties">
+                                    <entry key="buildtime" value="${time}" />
+                                </propertyfile>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>	        
+	        
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
