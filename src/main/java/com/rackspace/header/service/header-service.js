@@ -7,8 +7,62 @@
 		insertStyle();
 		getHeader("~!@#team#@!~",setupSearchAfterHeaderLoads,"~!@#servername#@!~");
 		getFooter("~!@#team#@!~","~!@#servername#@!~");
-
+		teliumInitialization("~!@#team#@!~");
 	});
+	
+	function create_javascript_element(script_src, is_inner_text, id) {
+        var script = document.createElement('script');
+        if(null!=id && id!=""){
+            script.id=id;
+        }
+        script.type = 'text/javascript';
+        
+        if(!is_inner_text){
+        	script.async = true;
+            script.src = script_src;
+        }
+        else{
+        	script.innerText=script_src;
+        	script.innerHtml=script_src;
+        }
+        return script;
+	}
+	
+	function insert_into_dom(element) {
+        var s0 = document.getElementsByTagName('script')[0];
+        s0.parentNode.insertBefore(element, s0);
+        document.getElementsByTagName('script')[0].innerHTML=document.getElementsByTagName('script')[0].innerText;
+    }
+	
+	function teliumInitialization(team){
+
+		var environment="~!@#env#@!~";
+		var rackId=getCookie("IS_UASrackuid");
+		var sessId=getCookie("RackSID");
+		
+		var theScript=("var utag_data={");
+		theScript+=("'customer_id': '',");
+		theScript+=("'rack_id': '"+rackId+"',");
+		theScript+=("'session_id': '"+sessId+"',");
+		theScript+=("'site_language': 'en',");
+		theScript+=("'environment': '"+environment+"',");
+		theScript+=("'search_term': '',");
+		theScript+=("'search_results': ''}; ");
+		
+		var element=create_javascript_element("//tags.tiqcdn.com/utag/rackspace/support/prod/utag.js",false,null);		
+		insert_into_dom(element);
+		
+		element=create_javascript_element(theScript,true,"racks-first-script");
+		insert_into_dom(element);
+		
+		var inputEnv=document.createElement('input');
+		inputEnv.type="hidden";
+		inputEnv.id="racks-env";
+		inputEnv.value="environment";
+		
+		var bodyTag=document.getElementsByTagName('body')[0];
+		bodyTag.appendChild(inputEnv);			
+	}
 	
 	function insertStyle(){
 		var hassCssStyle="~!@#haasstyle#@!~";
@@ -45,301 +99,408 @@
 		var theFooter="~!@#footervalue#@!~";
 		jQuery("#~!@#footerdivid#@!~").html(theFooter);   
 	}
+	
+	function getCookie(cookieName){
+		var retVal="";
+		if(null!=cookieName && cookieName!=""){
+			var allcookies = document.cookie;		
+
+			// Get all the cookies pairs in an array
+			var cookiearray  = allcookies.split(';');
+
+			// Now take key value pair out of this array
+			for(var i=0; i<cookiearray.length; i++){
+				var name = cookiearray[i].split('=')[0];
+				if(null!=name){
+					name=name.trim();
+				}
+				
+				var value = cookiearray[i].split('=')[1];
+				if(null!=value){
+					value=value.trim();
+				}
+				if(cookieName==name){
+					retVal=value;
+					break;
+				}
+			}	
+		}
+		return retVal;
+	}
 
 
 	/************Search Stuff**********/
 
 
+	// returns true if running on IE 9 or previous
+	function onIE9() {
+	  var version = 0;
+	  if (navigator.appName == 'Microsoft Internet Explorer') {
+	    var ua = navigator.userAgent;
+	    var re = new RegExp("MSIE ([0-9\{1,}[\.0-9]{0,})");
+	    if (re.exec(ua) != null)
+	      version = parseFloat(RegExp.$1);
+	  }
+	  return (version > 0 && version < 10)
+	}
 	var SearchModel = {
-			initialize: function() {
-				this.query = "";
-				this.filter = 'all'; // filter can be all, api_docs, discussions or product_documentation
-				this.page = 1;
-				this.resultsPerPage = 5;
-				this.results = null;
-				this.observers = [];
-				this.isLoading = false;
-			},
-			// observers must implement observe(event)
-			addObserver: function(observer) {
-				this.observers.push(observer);
-			},
-			notifyObservers: function(event) {
-				this.observers.forEach(function(aObserver) {
-					aObserver.observe(event);
-				});
-			},
-			search: function(query) {
-				this.query = query;
-				this.page = 1;
-				this.processSearch();
-				this.notifyObservers("search");
-			},
-			getFilter: function() {
-				return this.filter;
-			},
-			setFilter: function(value) {
-				this.filter = value;
-				this.page = 1;
-				this.processSearch();
-				this.notifyObservers("filter",this.filter);
-			},
-			nextPage: function() {
-				if (!this.isLoading && this.hasMorePages()) {
-					this.page++;
-					this.processSearch();
-					this.notifyObservers("page",this.filter);
-				}
-			},
-			// This function will call the Google Search API and add the result
-			// to the item with class 'support-content-list' set.
-			processSearch: function(event) {
-				if( this.query == '' ) {
-					// Do nothing unless there is something in the search box
-					return;
-				}
-				this.isLoading = true;
-				this.results = null;
-				jQuery.ajax({
-					type: 'GET',
-					url: 'https://www.googleapis.com/customsearch/v1',
-					data: {
-						// https://developers.google.com/custom-search/json-api/v1/reference/cse/list
-						key: 'AIzaSyCMGfdDaSfjqv5zYoS0mTJnOT3e9MURWkU',
-						cx: '006605420746493289825:wnrdhyxrou4',
-						q: this.getLongQueryString(),
-						num: this.resultsPerPage,
-						start: (this.page-1) * this.resultsPerPage + 1,
-					},
-					context: this,
-					error: function(xhr, status, error) {
-						// do nothing -- this.results is null indicates there was an error
-					},
-					success: function(result, status, xhr) {
-						this.results = result;
-					},
-					complete: function(xhr, status) {
-						this.isLoading = false;
-						this.notifyObservers("searchReturned");
-					}
-				});
-			},
-			getQueryString: function() { return this.query; },
-			getLongQueryString: function() {
-				var result = this.query;
-				if (this.filter != 'all') {
-					result += ' more:' + this.filter;
-				}
-				return result;
-			},
-			getResults: function() {
-				var result;
-				if (this.results && this.results.items) {
-					result = this.results.items;
-				} else {
-					result = new Array();
-				}
-				return result;
-			},
-			getNumResults: function() {
-				return this.results.searchInformation.totalResults;
-			},
-			getMaxNumPages: function() {
-				try {
-					var numPages = Math.ceil(this.results.searchInformation.totalResults / this.resultsPerPage);
-					return Math.min(20,numPages);
-				} catch (err) {
-					return 0;
-				}
-			},
-			hasMorePages: function() {
-				return this.page < this.getMaxNumPages();
-			},
+	  initialize: function() {
+	    this.query = "";
+	    this.filter = 'all'; // filter can be all, api_docs, discussions or product_documentation
+	    this.page = 1;
+	    this.resultsPerPage = 5;
+	    this.results = null;
+	    this.observers = [];
+	    this.isLoading = false;
+	  },
+	  // observers must implement observe(event)
+	  addObserver: function(observer) {
+	    this.observers.push(observer);
+	  },
+	  notifyObservers: function(event) {
+	    this.observers.forEach(function(aObserver) {
+	      aObserver.observe(event);
+	    });
+	  },
+	  search: function(query) {
+	    this.query = query;
+	    this.page = 1;
+	    this.processSearch();
+	    this.notifyObservers("search");
+	  },
+	  getFilter: function() {
+	    return this.filter;
+	  },
+	  setFilter: function(value) {
+	    this.filter = value;
+	    this.page = 1;
+	    this.processSearch();
+	    this.notifyObservers("filter",this.filter);
+	  },
+	  nextPage: function() {
+	    if (!this.isLoading && this.hasMorePages()) {
+	      this.page++;
+	      this.processSearch();
+	      this.notifyObservers("page",this.filter);
+	    }
+	  },
+	  // This function will call the Google Search API and add the result
+	  // to the item with class 'support-content-list' set.
+	  processSearch: function(event) {
+	    if( this.query == '' ) {
+	      // Do nothing unless there is something in the search box
+	      return;
+	    }
+	    this.isLoading = true;
+	    this.results = null;
+	    if( onIE9() ) {
+	      this.callGcsIE9();
+	    } else {
+	      this.callGcs();
+	    }
+	  },
+	  callGcs: function() {
+	    jQuery.ajax({
+	      type: 'GET',
+	      url: 'https://www.googleapis.com/customsearch/v1',
+	      data: {
+	        // https://developers.google.com/custom-search/json-api/v1/reference/cse/list
+	        key: 'AIzaSyCMGfdDaSfjqv5zYoS0mTJnOT3e9MURWkU',
+	        cx: '006605420746493289825:wnrdhyxrou4',
+	        q: this.getLongQueryString(),
+	        num: this.resultsPerPage,
+	        start: (this.page-1) * this.resultsPerPage + 1,
+	      },
+	      context: this,
+	      error: function(xhr, status, error) {
+	        // do nothing -- this.results is null indicates there was an error
+	      },
+	      success: function(result, status, xhr) {
+	        this.results = result;
+	      },
+	      complete: function(xhr, status) {
+	        this.isLoading = false;
+	        this.notifyObservers("searchReturned");
+	      }
+	    });
+	  },
+	  callGcsIE9: function() {
+	    var processJsonp = function(jsonResult) {
+	      var mockResult = new Object;
+	      mockResult.items = new Array;
+	      for(var i=0; i < jsonResult.results.length; i++) {
+	        var jsonpItem = jsonResult.results[i];
+	        mockResult.items.push({
+	          title: jsonpItem.titleNoFormatting,
+	          link: jsonpItem.url,
+	          htmlTitle: jsonpItem.title,
+	          snippet: jsonpItem.content,
+	          htmlFormattedUrl: jsonpItem.url,
+	        });
+	      }
+	      mockResult.searchInformation = {totalResults: parseInt(jsonResult.cursor.estimatedResultCount)};
+	      SearchModel.results = mockResult;
+	    };
+	    jQuery.ajax({
+	      dataType:'jsonp',
+	      url:'https://www.googleapis.com/customsearch/v1element?callback=?',
+	      data: {
+	        key: 'AIzaSyCVAXiUzRYsML1Pv6RwSG1gunmMikTzQqY',
+	        cx: '006605420746493289825:wnrdhyxrou4',
+	        q: this.getLongQueryString(),
+	        num: this.resultsPerPage,
+	        start: (this.page - 1) * this.resultsPerPage + 1,
+	      },
+	      context: this,
+	      success: processJsonp,
+	      error: function(xhr, status, error) {
+	        console.warn('SearchModel.searchIE9 ' + status + ': ' + error);
+	      },
+	      complete: function(xhr, status) {
+	        this.isLoading = false;
+	        this.notifyObservers("searchReturned");
+	      }
+	    });
+	  },
+	  getQueryString: function() { return this.query; },
+	  getLongQueryString: function() {
+	    var result = this.query;
+	    if (this.filter != 'all') {
+	      result += ' more:' + this.filter;
+	    }
+	    return result;
+	  },
+	  getResults: function() {
+	    var result;
+	    if (this.results && this.results.items) {
+	      result = this.results.items;
+	    } else {
+	      result = new Array();
+	    }
+	    var theQuery=this.query;
+	    var theResultSize=this.results.searchInformation.totalResults;
+	    
+	    var s0 = document.getElementById('racks-first-script');
+	    
+	    s0.parentNode.removeChild(s0);
+	    
+		var rackId=getCookie("IS_UASrackuid");
+		var sessId=getCookie("RackSID");
+	    var environment=document.getElementById('racks-env').value;
+	    	    
+		var theScript=(" utag.view={");
+		theScript+=("'customer_id': '',");
+		theScript+=("'rack_id': '"+rackId+"',");
+		theScript+=("'session_id': '"+sessId+"',");
+		theScript+=("'site_language': 'en',");
+		theScript+=("'environment': '"+environment+"',");
+		theScript+=("'search_term': '"+theQuery+"',");
+		theScript+=("'search_results': '"+theResultSize+"'}; ");
+				
+		var element=create_javascript_element(theScript,true,"racks-first-script");
+		
+		insert_into_dom(element,true);
+	    
+	    return result;
+	  },
+	  getNumResults: function() {
+	    return this.results.searchInformation.totalResults;
+	  },
+	  getMaxNumPages: function() {
+	    try {
+	      var numPages = Math.ceil(this.getNumResults() / this.resultsPerPage);
+	      return Math.min(20,numPages);
+	    } catch (err) {
+	      return 0;
+	    }
+	  },
+	  hasMorePages: function() {
+	    return this.page < this.getMaxNumPages();
+	  },
 	};
 	var SearchController = {
-			initialize: function(searchForm, searchField) {
-				this.searchForm = searchForm;
-				this.searchField = searchField;
-				this.attachToSearchField();
-				SearchView.setupSearchFiltersFunction(this.attachSearchFiltersFunction());
-			},
-			attachToSearchField: function() {
-				this.searchForm.on('submit', this.searchFunction());
-				if (this.searchField.autocomplete) {
-					this.searchField.autocomplete({
-						source: this.completeSearch,
-						position: { my: "left top", at: "left bottom" },
-					});
-				} else {
-					console.warn('jQuery UI autocomplete not available');
-				}
-			},
-			attachSearchFiltersFunction: function() {
-				var SearchController = this;
-				return function() {
-					jQuery('.filter_all').on('click', SearchController.filterFunction('all'));
-					jQuery('.filter_api_docs').on('click', SearchController.filterFunction('api_docs'));
-					jQuery('.filter_discussions').on('click', SearchController.filterFunction('discussions'));
-					jQuery('.filter_product_documentation').on('click', SearchController.filterFunction('product_documentation'));
-				};
-			},
-			searchFunction: function() {
-				return function(event) {
-					event.preventDefault();
-					var query = SearchController.getQueryString();
-					if (query) {
-						SearchController.blur(); // otherwise autocomplete may still be active
-						SearchModel.search(query);
-					}
-				};
-			},
-			getQueryString: function() {
-				var user_input = this.searchField.val();
-				var stripped = user_input.replace(/<[^>]*>?/g, "");
-				return stripped;
-			},
-			blur: function() {
-				this.searchField.blur();
-			},
-			filterFunction: function(filterValue) {
-				var SearchController = this;
-				return function(event) {
-					event.preventDefault();
-					SearchModel.setFilter(filterValue);
-				};
-			},
-			completeSearch: function(request,response) {
+	  initialize: function(searchForm, searchField) {
+	    this.searchForm = searchForm;
+	    this.searchField = searchField;
+	    this.attachToSearchField();
+	    SearchView.setupSearchFiltersFunction(this.attachSearchFiltersFunction());
+	  },
+	  attachToSearchField: function() {
+	    this.searchForm.on('submit', this.searchFunction());
+	    if (this.searchField.autocomplete) {
+	      this.searchField.autocomplete({
+	        source: this.completeSearch,
+	        position: { my: "left top", at: "left bottom" },
+	      });
+	    } else {
+	      console.warn('jQuery UI autocomplete not available');
+	    }
+	  },
+	  attachSearchFiltersFunction: function() {
+	    var SearchController = this;
+	    return function() {
+	      jQuery('.filter_all').on('click', SearchController.filterFunction('all'));
+	      jQuery('.filter_api_docs').on('click', SearchController.filterFunction('api_docs'));
+	      jQuery('.filter_discussions').on('click', SearchController.filterFunction('discussions'));
+	      jQuery('.filter_product_documentation').on('click', SearchController.filterFunction('product_documentation'));
+	    };
+	  },
+	  searchFunction: function() {
+	    return function(event) {
+	      event.preventDefault();
+	      var query = SearchController.getQueryString();
+	      if (query) {
+	        SearchController.blur(); // otherwise autocomplete may still be active
+	        SearchModel.search(query);
+	      }
+	    };
+	  },
+	  getQueryString: function() {
+	    var user_input = this.searchField.val();
+	    var stripped = user_input.replace(/<[^>]*>?/g, "");
+	    return stripped;
+	  },
+	  blur: function() {
+	    this.searchField.blur();
+	  },
+	  filterFunction: function(filterValue) {
+	    var SearchController = this;
+	    return function(event) {
+	      event.preventDefault();
+	      SearchModel.setFilter(filterValue);
+	    };
+	  },
+	  completeSearch: function(request,response) {
 
-				completeSearchCallback = function (jsonResponse) {
-					// second element of json response is an array of one-element arrays that we flatten here
-					response(jQuery(jsonResponse[1]).map(function(){return this[0];}));
-				};
-				// Now call for autocomplete terms
-				jQuery.ajax({
-					dataType: "json",
-					url: (window.location.protocol == "https:"?"https":"http") + '://clients1.google.com/complete/search?callback=?',
-					data: {
-						q: request.term,
-						client: 'partner',
-						partnerid: '006605420746493289825:wnrdhyxrou4',
-						ds: 'cse'
-					},
-					success: completeSearchCallback
-				});
-			}
+	    completeSearchCallback = function (jsonResponse) {
+	      // second element of json response is an array of one-element arrays that we flatten here
+	      response(jQuery(jsonResponse[1]).map(function(){return this[0];}));
+	    };
+	    // Now call for autocomplete terms
+	    jQuery.ajax({
+	      dataType: "jsonp",
+	      url: (window.location.protocol == "https:"?"https":"http") + '://clients1.google.com/complete/search?callback=?',
+	      data: {
+	        q: request.term,
+	        client: 'partner',
+	        partnerid: '006605420746493289825:wnrdhyxrou4',
+	        ds: 'cse'
+	      },
+	      success: completeSearchCallback
+	    });
+	  }
 	};
 	var SearchView = {
-			initialize: function(div, drawSearchCallback) {
-				this.div = div;
-				SearchModel.addObserver(this);
-				this.isFirstTimeRendering = true;
-				this.filterFunctionCallback = null;
-				this.drawSearchCallback = drawSearchCallback;
-			},
-			observe: function(event) {
-				switch (event) {
-				case "filter":
-					this.highlightCurrentFilter();
-					this.emptyResults();
-				case "page":
-					jQuery('.support-results-loading').show();
-					jQuery('.support-results-more').hide();
-					break;
-				case "search":
-					this.draw();
-					break;
-				case "searchReturned":
-					this.drawResults();
-					break;
-				default:
-					console.warn("oops! something went wrong\n  event: " + event);
-				}
-			},
-			emptyResults: function() {
-				jQuery('#search-results').empty();
-			},
-			setupSearchFiltersFunction: function(filterFunctionCallback) {
-				this.filterFunctionCallback = filterFunctionCallback;
-			},
-			draw: function() {
-				if (this.isFirstTimeRendering) {
-					var skeletonHtml = [
-					                    "<div class='support-results-container'>",
-					                    "<h4>Search Results</h4>",
-					                    "<ul class=\"support-content-filter clearfix\">",
-					                    "<li class=\"filter_all\"><a href=\"#\">All Results</a></li>",
-					                    "<li class=\"filter_product_documentation\"><a href=\"#\">Knowledge Center</a></li>",
-					                    "<li class=\"filter_api_docs\"><a href=\"#\">API Docs</a></li>",
-					                    "<li class=\"filter_discussions\"><a href=\"#\">Community</a></li>",
-					                    "</ul>",
-					                    "<div id=\"search-results\"></div>",
-					                    "<i class='spinner support-results-loading'></i>",
-					                    "<p class='support-results-more' style='display:none;'><a href='#' id='showMore'> <i class='fa fa-refresh'></i> Load more results</a></p>",
-					                    "</div>",
-					                    ].join("\n");
-					this.div.html(skeletonHtml);
-					this.filterFunctionCallback();
-					this.highlightCurrentFilter();
-					jQuery('#showMore').click(function(e) {
-						e.preventDefault();
-						SearchModel.nextPage();
-					});
-					this.isFirstTimeRendering = false;
-				} else {
-					this.emptyResults();
-				}
-				if(typeof this.drawSearchCallback != "undefined") this.drawSearchCallback();
-			},
-			drawResults: function() {
-				var div = jQuery('#search-results');
-				var results = SearchModel.getResults();
-				var createLink = this.createLink;
-				if(results.length == 0) {
-					// there could be no results because google says so or because an error occurred with the search...
-					// either way, we tell the user there are no search results
-					div.append('<p class="support-results-none">No search results for &quot;<strong>' + SearchModel.getQueryString() + '</strong>&quot;</p>');
-				} else {
-					jQuery.each(results, function(index,item){        
-						createLink('<h5>',item.title,item.link,item.htmlTitle).appendTo(div);
-						jQuery('<p>'+ item.snippet +'</p>').appendTo(div);
-						createLink('<p class="meta">',item.htmlFormattedUrl,item.link,item.htmlFormattedUrl).appendTo(div);
-					});
-				}
-				jQuery('.support-results-loading').hide();
-				jQuery('.support-results-more')[SearchModel.hasMorePages()?'show':'hide']();
-			},
-			highlightCurrentFilter: function() {
-				var filterValue = SearchModel.getFilter();
-				jQuery('ul.support-content-filter li.active').removeClass("active");
-				jQuery('ul.support-content-filter li.filter_' + filterValue).addClass("active");
-			},
-			createLink: function(encloseIn,title,link,contents) {
-				var result = jQuery(encloseIn);
-				var link = jQuery('<a>',{
-					'title': title,
-					'href': link,
-					'target': '_blank'
-				});
-				link.append(contents);
-				link.appendTo(result);
-				return result;
-			},
+	  initialize: function(div, drawSearchCallback) {
+	    this.div = div;
+	    SearchModel.addObserver(this);
+	    this.isFirstTimeRendering = true;
+	    this.filterFunctionCallback = null;
+	    this.drawSearchCallback = drawSearchCallback;
+	  },
+	  observe: function(event) {
+	    switch (event) {
+	    case "filter":
+	      this.highlightCurrentFilter();
+	      this.emptyResults();
+	    case "page":
+	      jQuery('.support-results-loading').show();
+	      jQuery('.support-results-more').hide();
+	      break;
+	    case "search":
+	      this.draw();
+	      break;
+	    case "searchReturned":
+	      this.drawResults();
+	      break;
+	    default:
+	      console.warn("oops! something went wrong\n  event: " + event);
+	    }
+	  },
+	  emptyResults: function() {
+	    jQuery('#search-results').empty();
+	  },
+	  setupSearchFiltersFunction: function(filterFunctionCallback) {
+	    this.filterFunctionCallback = filterFunctionCallback;
+	  },
+	  draw: function() {
+	    if (this.isFirstTimeRendering) {
+	      var skeletonHtml = [
+	      "<div class='support-results-container'>",
+	      "<h4>Search Results</h4>",
+	      "<ul class=\"support-content-filter clearfix\">",
+	      "<li class=\"filter_all\"><a href=\"#\">All Results</a></li>",
+	      "<li class=\"filter_product_documentation\"><a href=\"#\">Knowledge Center</a></li>",
+	      "<li class=\"filter_api_docs\"><a href=\"#\">API Docs</a></li>",
+	      "<li class=\"filter_discussions\"><a href=\"#\">Community</a></li>",
+	      "</ul>",
+	      "<div id=\"search-results\"></div>",
+	      "<i class='spinner support-results-loading'></i>",
+	      "<p class='support-results-more' style='display:none;'><a href='#' id='showMore'> <i class='fa fa-refresh'></i> Load more results</a></p>",
+	      "</div>",
+	      ].join("\n");
+	      this.div.html(skeletonHtml);
+	      this.filterFunctionCallback();
+	      this.highlightCurrentFilter();
+	      jQuery('#showMore').click(function(e) {
+	        e.preventDefault();
+	        SearchModel.nextPage();
+	      });
+	      this.isFirstTimeRendering = false;
+	    } else {
+	      this.emptyResults();
+	    }
+	    if(typeof this.drawSearchCallback != "undefined") this.drawSearchCallback();
+	  },
+	  drawResults: function() {
+	    var div = jQuery('#search-results');
+	    var results = SearchModel.getResults();
+	    var createLink = this.createLink;
+	    if(results.length == 0) {
+	      // there could be no results because google says so or because an error occurred with the search...
+	      // either way, we tell the user there are no search results
+	      div.append('<p class="support-results-none">No search results for &quot;<strong>' + SearchModel.getQueryString() + '</strong>&quot;</p>');
+	    } else {
+	      jQuery.each(results, function(index,item){        
+	        createLink('<h5>',item.title,item.link,item.htmlTitle).appendTo(div);
+	        jQuery('<p>'+ item.snippet +'</p>').appendTo(div);
+	        createLink('<p class="meta">',item.htmlFormattedUrl,item.link,item.htmlFormattedUrl).appendTo(div);
+	      });
+	    }
+	    jQuery('.support-results-loading').hide();
+	    jQuery('.support-results-more')[SearchModel.hasMorePages()?'show':'hide']();
+	  },
+	  highlightCurrentFilter: function() {
+	    var filterValue = SearchModel.getFilter();
+	    jQuery('ul.support-content-filter li.active').removeClass("active");
+	    jQuery('ul.support-content-filter li.filter_' + filterValue).addClass("active");
+	  },
+	  createLink: function(encloseIn,title,link,contents) {
+	    var result = jQuery(encloseIn);
+	    var link = jQuery('<a>',{
+	      'title': title,
+	      'href': link,
+	      'target': '_blank'
+	    });
+	    link.append(contents);
+	    link.appendTo(result);
+	    return result;
+	  },
 	};
 	function setupSearch(searchFormId,searchFieldId,searchResultsDivId,defaultFilter,drawSearchCallback) {
-		var searchForm = jQuery('#'+searchFormId);
-		var searchField = jQuery("#" + searchFieldId);
-		var searchResultsDiv = jQuery("#" + searchResultsDivId);
-		if(typeof defaultFilter === "undefined") defaultFilter = "all";
-		if (searchForm.length != 1 || searchField.length != 1 || searchResultsDiv.length != 1) {
-			console.warn("setupSearch failed");
-		} else {
-			SearchModel.initialize();
-			SearchModel.setFilter(defaultFilter);
-			SearchView.initialize(searchResultsDiv, drawSearchCallback);
-			SearchController.initialize(searchForm, searchField);
-		}
+	    var searchForm = jQuery('#'+searchFormId);
+	    var searchField = jQuery("#" + searchFieldId);
+	    var searchResultsDiv = jQuery("#" + searchResultsDivId);
+	    if(typeof defaultFilter === "undefined") defaultFilter = "all";
+	    if (searchForm.length != 1 || searchField.length != 1 || searchResultsDiv.length != 1) {
+		console.warn("setupSearch failed");
+	    } else {
+		SearchModel.initialize();
+		SearchModel.setFilter(defaultFilter);
+		SearchView.initialize(searchResultsDiv, drawSearchCallback);
+		SearchController.initialize(searchForm, searchField);
+	    }
 	}
-
 
 
 

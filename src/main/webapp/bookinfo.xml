@@ -6,8 +6,8 @@
    <productname>Doctools Services</productname>
    <webappname>rax-headerservice</webappname>
    <pominfo>
-      <groupid>headerservice.feedback</groupid>
-      <artifactid>headerservice.feedback</artifactid>
+      <groupid>com.rackspace.header.service</groupid>
+      <artifactid>rax-headerservice</artifactid>
       <jenkinsjobname>com.rackspace.header.service---rax-headerservice</jenkinsjobname>
       <version>1.0.0-SNAPSHOT</version>
       <pomname>Doctools Services</pomname>
