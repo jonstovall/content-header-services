@@ -6,11 +6,11 @@
    <productname>Doctools Services</productname>
    <webappname>rax-headerservice</webappname>
    <pominfo>
-      <groupid>com.rackspace.header.service</groupid>
-      <artifactid>rax-headerservice</artifactid>
+      <groupid>com.rackspace.haas.feedback</groupid>
+      <artifactid>rax-haas-feedback-services</artifactid>
       <jenkinsjobname>com.rackspace.header.service---rax-headerservice</jenkinsjobname>
       <version>1.0.0-SNAPSHOT</version>
-      <pomname>Doctools Services</pomname>
+      <pomname>HaaS and Feedback Services</pomname>
    </pominfo>
    <product>
       <types>
