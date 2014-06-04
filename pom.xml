@@ -8,7 +8,10 @@
 	<name>rax-headerservice Maven Webapp</name>
 	<url>http://maven.apache.org</url>
 		
-	
+	<properties>
+	    <timestamp>${maven.build.timestamp}</timestamp>
+	    <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
+	</properties>
 	<dependencies>
 
     <dependency>
@@ -72,6 +75,12 @@
 
 	<build>
 		<finalName>rax-headerservice</finalName>
+		<resources>
+		    <resource>
+		        <directory>src/main/resources</directory>
+		        <filtering>true</filtering>
+		    </resource>
+		</resources>
 		<plugins>
 	        <plugin>
 		      <artifactId>maven-compiler-plugin</artifactId>
