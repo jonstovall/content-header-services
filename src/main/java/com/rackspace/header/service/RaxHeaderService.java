@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.ServletContext;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.DefaultValue;
@@ -49,7 +50,8 @@ public class RaxHeaderService {
 	@GET
 	@Produces("application/javascript")
     @Path("/raxheaderservice.js")
-	public String getHeaderJavascript(@DefaultValue("raxheaderfooterservice-headercontent") @QueryParam("headerdivid")String headerdivid, 
+	public String getHeaderJavascript(@Context HttpServletRequest request, @Context HttpServletResponse resp,
+			@DefaultValue("raxheaderfooterservice-headercontent") @QueryParam("headerdivid")String headerdivid, 
 			@DefaultValue("raxheaderfooterservice-footercontent") @QueryParam("footerdivid") String footerdivid,
 			@DefaultValue("content") @QueryParam("contentdivid")String contentdivid, 
 			@DefaultValue("all") @QueryParam("filter") String filter,
@@ -61,6 +63,22 @@ public class RaxHeaderService {
 			@DefaultValue("//") @QueryParam("protocol") String protocol){
 		
 		String METHOD_NAME="getHeaderJavascript()";
+		
+		Cookie[] cookies=request.getCookies();
+		
+		//We delete the rackspace-header-env cookie, and then create it again
+		this.deleteCookie(resp, cookies, "rackspace-header-env");
+		String serverName=request.getServerName();
+		String env="production";
+		
+		if(null!=serverName&&serverName.toLowerCase().contains("staging")){
+			env="staging";
+		}
+		Cookie raxHeaderEnvCookie=new Cookie("rackspace-header-env", env);
+		raxHeaderEnvCookie.setMaxAge(60*60*24);
+		resp.addCookie(raxHeaderEnvCookie);
+
+		
 		if(log.isDebugEnabled()){
 			log.debug(METHOD_NAME+": START: ");
 			log.debug(METHOD_NAME+": headerdivid="+headerdivid);
@@ -73,6 +91,7 @@ public class RaxHeaderService {
 			log.debug(METHOD_NAME+": includejq="+includejq);
 		    log.debug(METHOD_NAME+": includejqui="+includejqui);
 		    log.debug(METHOD_NAME+": protocol="+protocol);
+		    log.debug(METHOD_NAME+": env="+env);
 		}
 		if(protocol.equals("http")){
 			protocol="http://";
@@ -88,13 +107,15 @@ public class RaxHeaderService {
 		}
 		String retVal="";
 		
-		String key=(headerdivid+footerdivid+contentdivid+filter+team+servername+debug+includejq+includejqui+protocol);
+		String key=(headerdivid+footerdivid+contentdivid+filter+team+servername+debug+includejq+includejqui+
+				    protocol+env);
 		String hashKey=""+key.hashCode();
 		if(log.isDebugEnabled()){
 			log.debug(METHOD_NAME+": key="+key);
 			log.debug(METHOD_NAME+": hashKey="+hashKey);
 			log.debug(METHOD_NAME+": (!headersMap.containsKey(hashKey))="+(!headersMap.containsKey(hashKey)));
 		}
+		
 		if(!RaxHeaderService.javascriptsMap.containsKey(hashKey)){			
 			String retStr="";
 		    try {               	  
@@ -104,8 +125,10 @@ public class RaxHeaderService {
 				String replacedTeam=replacedContentId.replaceAll("~!@#team#@!~", team);
 				String replacedHeaderId=replacedTeam.replaceAll("#~!@#headerdivid#@!~", ("#"+headerdivid));
 				String replacedFooterId=replacedHeaderId.replaceAll("#~!@#footerdivid#@!~", ("#"+footerdivid));
-				String replacedFilter=replacedFooterId.replaceAll("~!@#filter#@!~", filter);    
-				String replacedServer=replacedFilter.replaceAll("~!@#servername#@!~", servername); 
+				String replacedFilter=replacedFooterId.replaceAll("~!@#filter#@!~", filter);  
+				
+				String replaceEnv=replacedFilter.replaceAll("~!@#env#@!~", env);					
+				String replacedServer=replaceEnv.replaceAll("~!@#servername#@!~", servername); 			
 				
 				//Now get the Header.html file
 				innyStream=RaxHeaderService.class.getResourceAsStream("style.html");
@@ -184,6 +207,36 @@ public class RaxHeaderService {
 			log.debug(METHOD_NAME+": START");
 		}
 		return retVal;		
+	}
+	
+	private String getCookie(Cookie[]cookies, String key){
+		String retVal="";
+		
+		if(null!=cookies && null!=key){
+			for(Cookie aCookie:cookies){
+				String aKey=aCookie.getName();
+				if(null!=aKey&&aKey.equalsIgnoreCase(key)){
+					retVal=aCookie.getValue();
+				}
+			}
+		}
+		return retVal;
+	}
+	
+	private boolean deleteCookie(HttpServletResponse resp, Cookie[] cookies, String cookieName){
+		boolean retVal=false;
+		if(null!=cookies && null!=cookieName){
+			for(Cookie aCookie:cookies){
+				String aCookieName=aCookie.getName();
+				if(null!=aCookieName&&aCookieName.equalsIgnoreCase(cookieName)){
+					aCookie.setValue(null);
+					aCookie.setMaxAge(0);
+					resp.addCookie(aCookie);
+					retVal=true;
+				}
+			}
+		}		
+		return retVal;
 	}
 
 	
