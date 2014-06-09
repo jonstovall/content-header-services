@@ -39,7 +39,7 @@ public class RaxHeaderService {
 	private static Map<String, String>headersMap;
 	private static Map<String, String>javascriptsMap;
 	
-	
+	//A new comment
 	public static final String DATE_DELIMITER_IN_FOOTER_HTML="~~~YYYY~~~";
 	
 	static{
