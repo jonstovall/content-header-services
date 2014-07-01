@@ -36,23 +36,37 @@
 	
 	function teliumInitialization(team){
 
-		var environment="~!@#env#@!~";
+		var env="~!@#env#@!~";
 		var rackId=getCookie("IS_UASrackuid");
 		var sessId=getCookie("RackSID");
 		
-		var theScript=("var utag_data={");
-		theScript+=("'customer_id': '',");
-		theScript+=("'rack_id': '"+rackId+"',");
-		theScript+=("'session_id': '"+sessId+"',");
-		theScript+=("'site_language': 'en',");
-		theScript+=("'environment': '"+environment+"',");
-		theScript+=("'search_term': '',");
-		theScript+=("'search_results': ''}; ");
+		var pageNameDOM=document.getElementsByTagName('title');
+		var pageName=team;
+		if(null!=pageName){
+			pageName=pageName.trim();
+		}
+		pageName+=": ";
+		if(pageNameDOM!=null && pageNameDOM.length>0){			
+			pageName+=pageNameDOM[0].text.trim();
+		}
+		else{
+			pageName+=" NO TITLE url="+document.location.href;
+		}
 		
+		//Create a string instead of creating an Object because the using JSON.stringify results in 
+		//errors during the compression
+		var uData="var utag_data={"+
+			"'channel': '"+ team +
+			"', 'environment': '"+ env+
+		    "', 'page_name': '"+pageName+
+		    "', 'rack_id': '"+ rackId+","+
+		    "', 'session_id': '"+ sessId+
+		    "', 'site_language': 'en'};";
+	
 		var element=create_javascript_element("//tags.tiqcdn.com/utag/rackspace/support/prod/utag.js",false,null);		
 		insert_into_dom(element);
 		
-		element=create_javascript_element(theScript,true,"racks-first-script");
+		element=create_javascript_element(uData,true,"racks-first-script");
 		insert_into_dom(element);
 		
 		var inputEnv=document.createElement('input');
@@ -141,7 +155,7 @@
 	    if (re.exec(ua) != null)
 	      version = parseFloat(RegExp.$1);
 	  }
-	  return (version > 0 && version < 10)
+	  return (version > 0 && version < 10);
 	}
 	var SearchModel = {
 	  initialize: function() {
@@ -152,6 +166,7 @@
 	    this.results = null;
 	    this.observers = [];
 	    this.isLoading = false;
+	    this.isNextSearch = false;
 	  },
 	  // observers must implement observe(event)
 	  addObserver: function(observer) {
@@ -180,6 +195,7 @@
 	  nextPage: function() {
 	    if (!this.isLoading && this.hasMorePages()) {
 	      this.page++;
+	      this.isNextSearch=true;
 	      this.processSearch();
 	      this.notifyObservers("page",this.filter);
 	    }
@@ -188,6 +204,7 @@
 	  // to the item with class 'support-content-list' set.
 	  processSearch: function(event) {
 	    if( this.query == '' ) {
+	      this.isNextSearch=false;
 	      // Do nothing unless there is something in the search box
 	      return;
 	    }
@@ -213,6 +230,7 @@
 	      },
 	      context: this,
 	      error: function(xhr, status, error) {
+	    	this.isNextSearch=false;
 	        // do nothing -- this.results is null indicates there was an error
 	      },
 	      success: function(result, status, xhr) {
@@ -254,6 +272,7 @@
 	      context: this,
 	      success: processJsonp,
 	      error: function(xhr, status, error) {
+	    	this.isNextSearch=false;
 	        console.warn('SearchModel.searchIE9 ' + status + ': ' + error);
 	      },
 	      complete: function(xhr, status) {
@@ -280,27 +299,31 @@
 	    var theQuery=this.query;
 	    var theResultSize=this.results.searchInformation.totalResults;
 	    
-	    var s0 = document.getElementById('racks-first-script');
-	    
-	    s0.parentNode.removeChild(s0);
-	    
 		var rackId=getCookie("IS_UASrackuid");
-		var sessId=getCookie("RackSID");
-	    var environment=document.getElementById('racks-env').value;
-	    	    
-		var theScript=(" utag.view={");
-		theScript+=("'customer_id': '',");
-		theScript+=("'rack_id': '"+rackId+"',");
-		theScript+=("'session_id': '"+sessId+"',");
-		theScript+=("'site_language': 'en',");
-		theScript+=("'environment': '"+environment+"',");
-		theScript+=("'search_term': '"+theQuery+"',");
-		theScript+=("'search_results': '"+theResultSize+"'}; ");
-				
-		var element=create_javascript_element(theScript,true,"racks-first-script");
+		var sessId=getCookie("RackSID");	    	    
+		var env="~!@#env#@!~";
 		
-		insert_into_dom(element,true);
-	    
+		if(!this.isNextSearch){	
+		    var team="~!@#team#@!~";
+		    var pageName=team;
+		    if(null!=pageName){
+			    pageName=pageName.trim();
+		    }
+		    pageName+=": Search Results";
+		
+		    var viewData={
+			    channel: team,
+			    environment: env,
+			    page_name:pageName,
+			    rack_id: rackId,
+			    session_id: sessId,
+			    site_language: 'en',
+			    search_term: theQuery,
+			    search_results: theResultSize
+		    };			
+		    utag.view(viewData);
+		}	
+	    this.isNextSearch=false;
 	    return result;
 	  },
 	  getNumResults: function() {
@@ -475,11 +498,11 @@
 	    jQuery('ul.support-content-filter li.active').removeClass("active");
 	    jQuery('ul.support-content-filter li.filter_' + filterValue).addClass("active");
 	  },
-	  createLink: function(encloseIn,title,link,contents) {
+	  createLink: function(encloseIn,title,href,contents) {
 	    var result = jQuery(encloseIn);
 	    var link = jQuery('<a>',{
 	      'title': title,
-	      'href': link,
+	      'href': href,
 	      'target': '_blank'
 	    });
 	    link.append(contents);
