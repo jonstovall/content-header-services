@@ -69,7 +69,47 @@
                 </exclusion>
             </exclusions>		    
 	    </dependency>        
-        		
+
+	    <!-- Dependencies for Spring MVC Test framework -->
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+            <version>1.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <version>1.3</version>
+            <scope>test</scope>
+        </dependency>        
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.9.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>4.0.5.RELEASE</version>
+            <scope>test</scope>
+        </dependency>       
+        
+       <!-- For mocking Servlet Container Objects -->
+       <dependency>
+	       <groupId>org.apache.felix</groupId>
+	       <artifactId>org.apache.felix.http.jetty</artifactId>
+	       <version>2.2.0</version>
+       </dependency>  	    
+	    
+	    		
 	</dependencies>
 
 
@@ -144,6 +184,43 @@
 					</webResources>
 				</configuration>
 			</plugin>
+			
+			<!-- JaCoCo (Java Code Coverage) -->
+			<plugin>
+			    <groupId>org.jacoco</groupId>
+			    <artifactId>jacoco-maven-plugin</artifactId>
+			    <!--  
+			    <version>0.7.2-SNAPSHOT</version>
+			    -->
+			    <version>0.7.1.201405082137</version>
+			    <configuration>
+                    <destfile>${basedir}/target/coverage-reports/jacoco-unit.exec</destfile>
+                    <datafile>${basedir}/target/coverage-reports/jacoco-unit.exec</datafile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>jacoco-initialize</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>jacoco-site</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+			</plugin>			
+			
 		</plugins>
 	</build>
 </project>

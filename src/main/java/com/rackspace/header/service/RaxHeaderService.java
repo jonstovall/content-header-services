@@ -39,6 +39,13 @@ public class RaxHeaderService {
 	private static Map<String, String>headersMap;
 	private static Map<String, String>javascriptsMap;
 	
+	private InputStream headerJsStream;
+	private InputStream htmlStream;
+	private InputStream styleStream;
+	private InputStream footerStream;
+	private InputStream latestJQuery;
+	private InputStream latestJQueryUI;
+	
 	//A new comment
 	public static final String DATE_DELIMITER_IN_FOOTER_HTML="~~~YYYY~~~";
 	
@@ -46,7 +53,151 @@ public class RaxHeaderService {
 		RaxHeaderService.footersMap=new HashMap<String, String>();
 		RaxHeaderService.headersMap=new HashMap<String, String>();
 		RaxHeaderService.javascriptsMap=new HashMap<String, String>();
-	}	
+	}
+	
+	//Needed for JUnit testing
+	public Map<String, String> getJavascriptsMap(){
+		return RaxHeaderService.javascriptsMap;
+	}
+	
+	//Needed for JUnit testing
+	public Map<String,String> getHeadersMap(){
+		return RaxHeaderService.headersMap;
+	}
+	
+	//Needed for JUnit testing
+	public Map<String,String> getFootersMap(){
+		return RaxHeaderService.footersMap;
+	}
+	
+	//Needed for JUnit testing
+	public InputStream getStyleStream(){
+		if(this.styleStream==null){
+			this.styleStream=RaxHeaderService.class.getResourceAsStream("style.html");
+		}
+		else{
+			try{
+				this.styleStream.available();
+			}
+			catch(IOException e){
+				//the stream is closed, open it again
+				this.styleStream=RaxHeaderService.class.getResourceAsStream("style.html");
+			}			
+		}
+		return this.styleStream;		
+	}
+	
+	//Needed for JUnit testing
+	public void setStyleStream(InputStream inny){
+		this.styleStream=inny;
+	}
+	
+	public InputStream getFooterStream(){
+		if(this.footerStream==null){
+			this.footerStream=RaxHeaderService.class.getResourceAsStream("Footer.html");
+		}
+		else{
+			try{
+				this.footerStream.available();
+			}
+			catch(IOException e){
+				//the stream is closed, open it again
+				this.footerStream=RaxHeaderService.class.getResourceAsStream("Footer.html");
+			}			
+		}		
+		return this.footerStream;			
+	}
+	
+	//Needed for JUnit testing
+	public void setFooterStream(InputStream inny){
+		this.footerStream=inny;
+	}
+	
+	public InputStream getHtmlStream(){
+		if(this.htmlStream==null){
+			this.htmlStream=RaxHeaderService.class.getResourceAsStream("Header.html");
+		}
+		else{
+			try{
+				this.htmlStream.available();
+			}
+			catch(IOException e){
+				//the stream is closed, open it again
+				this.htmlStream=RaxHeaderService.class.getResourceAsStream("Header.html");
+			}
+
+		}
+		return this.htmlStream;
+	}
+	
+	//Needed for JUnit testing
+	public void setHtmlStream(InputStream inny){
+		this.htmlStream=inny;
+	}
+	
+	public InputStream getHeaderJsStream(){
+		if(this.headerJsStream==null){
+			this.headerJsStream=RaxHeaderService.class.getResourceAsStream("header-service.js");
+		}
+		else{
+			try{
+				this.headerJsStream.available();
+			}
+			catch(IOException e){
+				//the stream is closed, open it again
+				this.headerJsStream=RaxHeaderService.class.getResourceAsStream("header-service.js");
+			}			
+		}
+		return this.headerJsStream;
+	}
+	
+	//Needed for JUnit testing
+	public void setHeaderJsStream(InputStream inny){
+		this.headerJsStream=inny;
+	}
+	
+	public InputStream getLatestJQuery(){
+		if(this.latestJQuery==null){
+			this.latestJQuery=RaxHeaderService.class.getResourceAsStream("latestJQuery.js");
+		}
+		else{
+			try{
+				this.latestJQuery.available();
+			}
+			catch(IOException e){
+				//the stream is closed, open it again
+				this.latestJQuery=RaxHeaderService.class.getResourceAsStream("latestJQuery.js");
+			}			
+		}
+		return this.latestJQuery;
+	}
+	
+	//Needed for JUnit testing
+	public void setLatestJQuery(InputStream latestJQuery){
+		this.latestJQuery=latestJQuery;
+	}
+	
+	public InputStream getLatestJQueryUI(){
+		if(this.latestJQueryUI==null){
+			this.latestJQueryUI=RaxHeaderService.class.getResourceAsStream("latestJQueryUI.js");
+		}
+		else{
+			try{
+				this.latestJQueryUI.available();
+			}
+			catch(IOException e){
+				//the stream is closed, open it again
+				this.latestJQueryUI=RaxHeaderService.class.getResourceAsStream("latestJQueryUI.js");
+			}			
+		}
+		return this.latestJQueryUI;
+	}
+	
+	//Needed for JUnit testing
+	public void setLatestJQueryUI(InputStream latestJQueryUI){
+		this.latestJQueryUI=latestJQueryUI;
+	}
+	
 	@GET
 	@Produces("application/javascript")
     @Path("/raxheaderservice.js")
@@ -63,21 +214,13 @@ public class RaxHeaderService {
 			@DefaultValue("//") @QueryParam("protocol") String protocol){
 		
 		String METHOD_NAME="getHeaderJavascript()";
-		
-		Cookie[] cookies=request.getCookies();
-		
-		//We delete the rackspace-header-env cookie, and then create it again
-		this.deleteCookie(resp, cookies, "rackspace-header-env");
+
 		String serverName=request.getServerName();
 		String env="production";
 		
 		if(null!=serverName&&serverName.toLowerCase().contains("staging")){
 			env="staging";
 		}
-		Cookie raxHeaderEnvCookie=new Cookie("rackspace-header-env", env);
-		raxHeaderEnvCookie.setMaxAge(60*60*24);
-		resp.addCookie(raxHeaderEnvCookie);
-
 		
 		if(log.isDebugEnabled()){
 			log.debug(METHOD_NAME+": START: ");
@@ -119,8 +262,8 @@ public class RaxHeaderService {
 		if(!RaxHeaderService.javascriptsMap.containsKey(hashKey)){			
 			String retStr="";
 		    try {               	  
-		    	InputStream innyStream=RaxHeaderService.class.getResourceAsStream("header-service.js");
-		    	retStr=getFileContents(innyStream);
+		    	InputStream jsStream=this.getHeaderJsStream();
+		    	retStr=getFileContents(jsStream);
 				String replacedContentId=retStr.replaceAll("~!@#contentdivid#@!~", contentdivid);
 				String replacedTeam=replacedContentId.replaceAll("~!@#team#@!~", team);
 				String replacedHeaderId=replacedTeam.replaceAll("#~!@#headerdivid#@!~", ("#"+headerdivid));
@@ -130,19 +273,19 @@ public class RaxHeaderService {
 				String replaceEnv=replacedFilter.replaceAll("~!@#env#@!~", env);					
 				String replacedServer=replaceEnv.replaceAll("~!@#servername#@!~", servername); 			
 				
-				//Now get the Header.html file
-				innyStream=RaxHeaderService.class.getResourceAsStream("style.html");
-				String styleContent=getFileContents(innyStream);
+				//Now get the style.html file
+				InputStream styleStream=this.getStyleStream();
+				String styleContent=getFileContents(styleStream);
 				String replaceStyleContent=replacedServer.replaceAll("~!@#haasstyle#@!~", this.compressHtml(styleContent));
 				
 				//Now get the Header.html file
-				innyStream=RaxHeaderService.class.getResourceAsStream("Header.html");
-				String insertHeaderContent=getFileContents(innyStream);
+				InputStream htmlStream=this.getHtmlStream();
+				String insertHeaderContent=getFileContents(htmlStream);
 				String replaceHeaderContent=replaceStyleContent.replaceAll("~!@#headervalue#@!~", this.compressHtml(insertHeaderContent));
 				
 				//Now get the Footer.html file
-				innyStream=RaxHeaderService.class.getResourceAsStream("Footer.html");
-				String insertFooterContent=getFileContents(innyStream);	
+				InputStream footerStream=this.getFooterStream();
+				String insertFooterContent=getFileContents(footerStream);	
 				SimpleDateFormat simpleDateFormatter=new SimpleDateFormat("yyyy");
 				Date currentYear=new Date(System.currentTimeMillis());
 				String year=simpleDateFormatter.format(currentYear);
@@ -152,8 +295,8 @@ public class RaxHeaderService {
 				String replacedProtocol=replaceFooterContent.replaceAll("~!@#http://#@!~", protocol); 
 				
 				if(includejq.equalsIgnoreCase("true")){
-					innyStream=RaxHeaderService.class.getResourceAsStream("latestJQuery.js");
-					String insertJQStr=getFileContents(innyStream);
+					InputStream jqueryStream=this.getLatestJQuery();
+					String insertJQStr=getFileContents(jqueryStream);
 					
 					StringBuffer retStrBuff=new StringBuffer("");
 					int startInsertIndex=replacedProtocol.indexOf("(function(){");
@@ -163,8 +306,8 @@ public class RaxHeaderService {
 						retStrBuff.append(insertJQStr);						
 						retStrBuff.append(" ");
 						if(includejqui.equalsIgnoreCase("true")){
-							innyStream=RaxHeaderService.class.getResourceAsStream("latestJQueryUI.js");
-							String jqueryUIInsert=getFileContents(innyStream);
+							InputStream latestJQueryUI=this.getLatestJQueryUI();
+							String jqueryUIInsert=getFileContents(latestJQueryUI);
 							retStrBuff.append(jqueryUIInsert);
 							retStrBuff.append(" ");	 
 						}
@@ -197,10 +340,16 @@ public class RaxHeaderService {
 				e.printStackTrace();
 			}
 			
-			headersMap.put(hashKey,retVal);
+		    //Double check to make sure that the headerMap doesn't contain the key
+		    if(!RaxHeaderService.javascriptsMap.containsKey(hashKey)){
+		    	synchronized (retStr) {
+		    		RaxHeaderService.javascriptsMap.put(hashKey,retVal);
+				}
+		    	
+		    }
 		}
 		else{
-			retVal=headersMap.get(hashKey);
+			retVal=RaxHeaderService.javascriptsMap.get(hashKey);
 		}
 		
 		if(log.isDebugEnabled()){
@@ -208,48 +357,18 @@ public class RaxHeaderService {
 		}
 		return retVal;		
 	}
-	
-	private String getCookie(Cookie[]cookies, String key){
-		String retVal="";
-		
-		if(null!=cookies && null!=key){
-			for(Cookie aCookie:cookies){
-				String aKey=aCookie.getName();
-				if(null!=aKey&&aKey.equalsIgnoreCase(key)){
-					retVal=aCookie.getValue();
-				}
-			}
-		}
-		return retVal;
-	}
-	
-	private boolean deleteCookie(HttpServletResponse resp, Cookie[] cookies, String cookieName){
-		boolean retVal=false;
-		if(null!=cookies && null!=cookieName){
-			for(Cookie aCookie:cookies){
-				String aCookieName=aCookie.getName();
-				if(null!=aCookieName&&aCookieName.equalsIgnoreCase(cookieName)){
-					aCookie.setValue(null);
-					aCookie.setMaxAge(0);
-					resp.addCookie(aCookie);
-					retVal=true;
-				}
-			}
-		}		
-		return retVal;
-	}
 
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/getheader")
-	public String getHeaderOrFooter(@Context HttpServletRequest request, @Context HttpServletResponse response, @Context ServletContext context, 
+	public String getHeaderOrFooter(@Context HttpServletRequest request, @Context HttpServletResponse response, 
 			@DefaultValue("api") @QueryParam("team")String team,
 			@DefaultValue("false") @QueryParam("debug")String debug,
 			@DefaultValue("false") @QueryParam("footer")String footerStr){
 		String METHOD_NAME="getHeader()";
 		if(log.isDebugEnabled()){
-			log.debug(METHOD_NAME+": START: context="+context+" team="+team+" debug="+debug+" footerStr="+footerStr);
+			log.debug(METHOD_NAME+": START: team="+team+" debug="+debug+" footerStr="+footerStr);
 		}
 		String headerOrigin=request.getHeader("Origin");
 		if(log.isDebugEnabled()){
@@ -290,6 +409,7 @@ public class RaxHeaderService {
 		if(log.isDebugEnabled()){
 			log.debug(METHOD_NAME+": START: team="+team+" debug="+debug);
 		}
+		//Get the browser id
 		String userAgent=request.getHeader("User-Agent");
 		String key=userAgent+"-"+debug;
 		if(log.isDebugEnabled()){
@@ -298,14 +418,24 @@ public class RaxHeaderService {
 		}
 		//We only load the footer text if it is null
 		if(!RaxHeaderService.footersMap.containsKey(key)){
-			String footerDetails=getFooterDetails(userAgent);
+			String footerDetails=getFooterDetails(userAgent);			
 			if(debug.equals("false")){
-				RaxHeaderService.footersMap.put(key,footerDetails);
+				//Double check to make sure that the key still does not exist
+				if(!RaxHeaderService.footersMap.containsKey(key)){
+					synchronized(RaxHeaderService.footersMap){
+						RaxHeaderService.footersMap.put(key,footerDetails);
+					}
+				}
 			}
 			else{
-				RaxHeaderService.footersMap.put(key,compressHtml(footerDetails));
+				if(!RaxHeaderService.footersMap.containsKey(key)){
+					synchronized(RaxHeaderService.footersMap){
+						RaxHeaderService.footersMap.put(key,compressHtml(footerDetails));
+					}
+				}
 			}			
 		}
+		//By the time we get here the key-value pair should always be in the Map
 		try {
 			jsonObj.put("html", RaxHeaderService.footersMap.get(key));
 			if(null==team){
@@ -325,7 +455,7 @@ public class RaxHeaderService {
 	private String getFooterDetails(String userAgent){
 		StringBuffer retVal=new StringBuffer("");
 		String METHOD_NAME="getFooterDetails()";
-		InputStream inny=RaxHeaderService.class.getResourceAsStream("Footer.html");
+		InputStream inny=this.getFooterStream();//RaxHeaderService.class.getResourceAsStream("Footer.html");
 		if(null!=inny){	
 			try {				
 			    InputStreamReader reader=new InputStreamReader(inny);
@@ -377,14 +507,15 @@ public class RaxHeaderService {
 		return retVal.toString();
 	}
 	
-	private void getHeader(JSONObject jsonObj, String team, String key){
+	private void getHeader(JSONObject jsonObj, String team, String debug){
 		String METHOD_NAME="getHeader()";
 		if(log.isDebugEnabled()){
-			log.debug(METHOD_NAME+": START: team="+team+" key="+key);
+			log.debug(METHOD_NAME+": START: team="+team+" debug="+debug);
 		}
-		if(!RaxHeaderService.headersMap.containsKey(key)){
-			StringBuffer temp=new StringBuffer("");
-			InputStream inny=RaxHeaderService.class.getResourceAsStream("Header.html");
+		String key=team+debug;
+		StringBuffer temp=new StringBuffer("");
+		if(!RaxHeaderService.headersMap.containsKey(key)){	
+			InputStream inny=this.getHeaderJsStream();//RaxHeaderService.class.getResourceAsStream("Header.html");
 			if(null!=inny){
 				int aChar=-1;
 				char aCharChar=' ';
@@ -397,12 +528,22 @@ public class RaxHeaderService {
 						temp.append(aCharChar);
 					}
 					inny.close();
-					if(key.equals("false")){
-					    //Now we need to compress the html												
-					    RaxHeaderService.headersMap.put(key,compressHtml(temp.toString()));	
+					if(debug.equals("false")){
+						//Double Check to make sure the key is not in the map
+						if(!RaxHeaderService.headersMap.containsKey(key)){
+							synchronized(RaxHeaderService.headersMap){
+								//Now we need to compress the html												
+								RaxHeaderService.headersMap.put(key,compressHtml(temp.toString()));
+							}
+						}
 					}
 					else{
-						RaxHeaderService.headersMap.put(key,temp.toString());
+						//Double Check to make sure the key is not in the map
+						if(!RaxHeaderService.headersMap.containsKey(key)){
+							synchronized(RaxHeaderService.headersMap){
+								RaxHeaderService.headersMap.put(key,temp.toString());
+							}
+						}
 					}
 				} 
 				catch (IOException e) {
@@ -410,8 +551,12 @@ public class RaxHeaderService {
 				}
 			}
 		}
+		else{
+			temp=new StringBuffer(RaxHeaderService.headersMap.get(key));
+		}
 		try {
-			jsonObj.put("html", RaxHeaderService.headersMap.get(key));
+			jsonObj.put("key", key);
+			jsonObj.put("html", temp.toString());
 			if(null==team){
 				team="api";
 			}
