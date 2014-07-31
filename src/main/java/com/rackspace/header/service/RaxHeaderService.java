@@ -341,11 +341,10 @@ public class RaxHeaderService {
 			}
 			
 		    //Double check to make sure that the headerMap doesn't contain the key
+		    //We don't care if another thread comes in and adds a value with the same key
+		    //our call would just update it, but we don't want to lock the Map object
 		    if(!RaxHeaderService.javascriptsMap.containsKey(hashKey)){
-		    	synchronized (retStr) {
-		    		RaxHeaderService.javascriptsMap.put(hashKey,retVal);
-				}
-		    	
+		    	RaxHeaderService.javascriptsMap.put(hashKey,retVal);
 		    }
 		}
 		else{
@@ -421,17 +420,18 @@ public class RaxHeaderService {
 			String footerDetails=getFooterDetails(userAgent);			
 			if(debug.equals("false")){
 				//Double check to make sure that the key still does not exist
+			    //We don't care if another thread comes in and adds a value with the same key
+			    //our call would just update it, but we don't want to lock the Map object
 				if(!RaxHeaderService.footersMap.containsKey(key)){
-					synchronized(RaxHeaderService.footersMap){
-						RaxHeaderService.footersMap.put(key,footerDetails);
-					}
+					RaxHeaderService.footersMap.put(key,footerDetails);
 				}
 			}
 			else{
+				//Double check to make sure that the key still does not exist
+			    //We don't care if another thread comes in and adds a value with the same key
+			    //our call would just update it, but we don't want to lock the Map object				
 				if(!RaxHeaderService.footersMap.containsKey(key)){
-					synchronized(RaxHeaderService.footersMap){
-						RaxHeaderService.footersMap.put(key,compressHtml(footerDetails));
-					}
+					RaxHeaderService.footersMap.put(key,compressHtml(footerDetails));
 				}
 			}			
 		}
@@ -530,19 +530,20 @@ public class RaxHeaderService {
 					inny.close();
 					if(debug.equals("false")){
 						//Double Check to make sure the key is not in the map
+					    //We don't care if another thread comes in and adds a value with the same key
+					    //our call would just update it, but we don't want to lock the Map object	
 						if(!RaxHeaderService.headersMap.containsKey(key)){
-							synchronized(RaxHeaderService.headersMap){
-								//Now we need to compress the html												
-								RaxHeaderService.headersMap.put(key,compressHtml(temp.toString()));
-							}
+							//Now we need to compress the html												
+							RaxHeaderService.headersMap.put(key,compressHtml(temp.toString()));
+	
 						}
 					}
 					else{
 						//Double Check to make sure the key is not in the map
+					    //We don't care if another thread comes in and adds a value with the same key
+					    //our call would just update it, but we don't want to lock the Map object	
 						if(!RaxHeaderService.headersMap.containsKey(key)){
-							synchronized(RaxHeaderService.headersMap){
-								RaxHeaderService.headersMap.put(key,temp.toString());
-							}
+							RaxHeaderService.headersMap.put(key,temp.toString());
 						}
 					}
 				} 
