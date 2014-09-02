@@ -8,7 +8,37 @@
 		getHeader("~!@#team#@!~",setupSearchAfterHeaderLoads,"~!@#servername#@!~");
 		getFooter("~!@#team#@!~","~!@#servername#@!~");
 		teliumInitialization("~!@#team#@!~");
+		checkApiDocsHref();
+		
 	});
+
+	//The Header.html's API Documentation tab is hard coded to point to docs.rackspace.com.
+	//We can only determine what the API Docs href should be at run time. There are several
+	//env's, staging, internal, and internal-staging. Look at the window url, and if it 
+	//contains, staging, internal, or internal-staging change the href accordingly	
+	function checkApiDocsHref(){
+		var serverUrl=window.location.href;
+
+		var index=serverUrl.indexOf("internal");
+		if(-1!=index){
+			$('#raxhs-api').removeAttr('href');
+			
+			index=serverUrl.indexOf('staging');
+			var theNewUrl='http://docs-internal.rackspace.com';
+			if(-1!=index){
+				theNewUrl='http://docs-internal-staging.rackspace.com';
+			}
+			$('#raxhs-api').attr('href',theNewUrl);
+		}
+		//Now we have to check for staging
+		else{
+			index=serverUrl.indexOf('staging');
+			if(-1!=index){
+				$('#raxhs-api').removeAttr('href');
+				$('#raxhs-api').attr('href','http://docs-staging.rackspace.com');
+			}
+		}		
+	}
 	
 	function create_javascript_element(script_src, is_inner_text, id) {
         var script = document.createElement('script');
